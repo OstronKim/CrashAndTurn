@@ -29,7 +29,7 @@ function setup() {
   bgcolor = color("white");
   background(bgcolor);
 
-  startStop();
+  //startStop();
 
   position = [80, 30];
   endPos = [600, 600];
@@ -40,12 +40,12 @@ function setup() {
 
   a1 = new avatar(position[0], position[1], images);
 
-  obstacleArray = map2();
+  obstacleArray = mapH();
 
   
   directionRadio = createRadio();
-  directionRadio.option(0, "Random").checked = true;
-  directionRadio.option(1, "Trajectory");
+  directionRadio.option(0, "Random");
+  directionRadio.option(1, "Trajectory").checked = true;
 
   hasChangedDir = false;
   speed = 0.3;
@@ -155,6 +155,25 @@ function map2() {
     obstacle4,
     obstacle5,
     obstacle6,
+    wallTop,
+    wallRight,
+    wallBottom,
+    wallLeft,
+  ];
+
+  return obstacleArray;
+}
+
+function mapH() { //Test map for horizontal troubleshooting
+  let obstacle1 = new obstacle(120, 120, 150, 10);
+
+  let wallTop = new obstacle(0, 1, 700, 2);
+  let wallRight = new obstacle(698, 0, 2, 700);
+  let wallBottom = new obstacle(1, 698, 700, 2);
+  let wallLeft = new obstacle(1, 0, 2, 700);
+
+  let obstacleArray = [
+    obstacle1,
     wallTop,
     wallRight,
     wallBottom,
