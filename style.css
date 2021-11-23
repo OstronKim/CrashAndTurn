@@ -2,7 +2,12 @@ html,
 body {
   margin: 0;
   padding: 0;
+  background-color:rgb(27, 27, 27); /*eye saver makes power saver*/
+  color:white;
 }
 canvas {
   display: block;
+}
+.button {
+  border-radius: 50%;
 }

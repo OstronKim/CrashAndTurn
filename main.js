@@ -25,10 +25,11 @@ function preload() {
 
 function setup() {
   canvas = createCanvas(700, 700);
-  //canvas.position(1000,100);
-  //background(img, [0.5])
+  canvas.position(610,120); //adjusted for 1920x1080 chrome maximised
   bgcolor = color("white");
   background(bgcolor);
+
+  startStop();
 
   position = [80, 30];
   endPos = [600, 600];
@@ -41,15 +42,19 @@ function setup() {
 
   obstacleArray = map2();
 
+  
+  directionRadio = createRadio();
+  directionRadio.option(0, "Random").checked = true;
+  directionRadio.option(1, "Trajectory");
+
   hasChangedDir = false;
-  speed = 0.5;
+  speed = 0.3;
   index = 0;
   frameRate(60);
 }
 
 function draw() {
   background("white");
-  //background(images[3], 0.5);
 
   if (done) {
     text("Goal reached!", 400, 500, 200, 200);
@@ -65,16 +70,16 @@ function draw() {
 
   obstacleArray.forEach((element) => element.draw());
 
+  let directionMode = directionRadio.value();
+
   //Keep moving while not on end point
   if (
     !(abs(a1.position.x - endPos[0]) < 1 && abs(a1.position.y - endPos[1]) < 1)
   ) {
-    a1.position.add(a1.crash_and_turn(obstacleArray));
-    //arc(a1.position.x, a1.position.y, 75, 75, 0, PI/2);
-    //arc(a1.position.x, a1.position.y, 70, 70, 0, PI/2, PIE)
+    a1.position.add(a1.crash_and_turn(obstacleArray, directionMode));
     stroke("purple"); // Change the color
     strokeWeight(10); // Make the points 10 pixels in
-    //point(a1.position.x, a1.position.y);
+    point(a1.position.x, a1.position.y);
     //a1.show();
     noStroke();
     //text(a1.position.toString(), 100, 5, 400, 75);
@@ -85,17 +90,17 @@ function draw() {
   }
 
   //animate
-  let xOffset = 20;
-  let yOffset = 20;
-  if (index < images.length) {
-    let roundIndex = floor(index % images.length);
-    image(images[roundIndex], a1.position.x - xOffset, a1.position.y - yOffset);
-    index += speed;
-  } else {
-    index = 0;
-    image(images[0], a1.position.x - xOffset, a1.position.y - yOffset);
-    index += speed;
-  }
+  // let xOffset = 20;
+  // let yOffset = 20;
+  // if (index < images.length) {
+  //   let roundIndex = floor(index % images.length);
+  //   image(images[roundIndex], a1.position.x - xOffset, a1.position.y - yOffset);
+  //   index += speed;
+  // } else {
+  //   index = 0;
+  //   image(images[0], a1.position.x - xOffset, a1.position.y - yOffset);
+  //   index += speed;
+  // }
 }
 
 //Ide till en "smartare" agent
@@ -159,6 +164,23 @@ function map2() {
   return obstacleArray;
 }
 
+function startStop() {
+  noLoop();
+  var button = createButton("Start");
+  var button2 = createButton("Stop");
+
+  button.mousePressed(startSketch);
+
+  button2.mousePressed(stopSketch);
+
+  function stopSketch() {
+    noLoop();
+  }
+
+  function startSketch() {
+    loop();
+  }
+}
 //Easy map
 // obstacle1 = new obstacle(70, 70, 100, 100);
 // obstacle2 = new obstacle(300, 250, 30, 100);

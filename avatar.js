@@ -51,7 +51,7 @@ class avatar {
     return false;
   }
 
-  crash_and_turn(obstacleArr) {
+  crash_and_turn(obstacleArr, directionMode) {
     let mode = 1; //mode 0 = random, 1 = based on initial trajectory
 
     let direction = createVector(
@@ -59,6 +59,8 @@ class avatar {
       endPos[1] - this.position.y
     );
     direction.normalize();
+
+    console.log(directionMode);
 
     let nextPos = createVector(this.position.x, this.position.y);
     nextPos.add(direction);
@@ -71,7 +73,7 @@ class avatar {
       //Can advance in a straight line towards endpoint
       hasChangedDir = false;
       return direction;
-    } else if (mode == 0) {
+    } else if (directionMode == 0) {
       //Random direction
       if (hasChangedDir == false) {
         this.rand = Math.random();
@@ -144,3 +146,4 @@ class avatar {
     }
   }
 }
+
