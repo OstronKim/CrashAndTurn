@@ -17,21 +17,21 @@ class avatar {
 
   //Denna funktion behöver utvecklas med ytterligare checks som kan hantera obstacles som overlappar
   intersect(obstacleArr) {
-    let x_intersect = false;
-    let y_intersect = false;
+    let intersecting = false;
 
     for (let i = 0; i < obstacleArr.length; i++) {
-      if (
-        this.position.x >= obstacleArr[i].x &&
-        this.position.x <= obstacleArr[i].x + obstacleArr[i].w &&
-        this.position.y >= obstacleArr[i].y &&
-        this.position.y <= obstacleArr[i].y + obstacleArr[i].h
-      ) {
-        x_intersect = true;
-        y_intersect = true;
-      }
+      // if (
+      //   this.position.x >= obstacleArr[i].x &&
+      //   this.position.x <= obstacleArr[i].x + obstacleArr[i].w &&
+      //   this.position.y >= obstacleArr[i].y &&
+      //   this.position.y <= obstacleArr[i].y + obstacleArr[i].h
+      // ) {
+      //   intersecting = true;
+      // }
+      intersecting = collidePointRect(this.position.x, this.position.y,
+        obstacleArr[i].x, obstacleArr[i].y, obstacleArr[i].w, obstacleArr[i].h);
 
-      if (x_intersect && y_intersect) {
+      if (intersecting == true) {
         if (this.position.x <= obstacleArr[i].x + 1) {
           //Vertical left
           //console.log("Vertical left")
@@ -59,7 +59,6 @@ class avatar {
       endPos[1] - this.position.y
     );
     direction.normalize();
-    console.log(direction);
 
     let nextPos = createVector(this.position.x, this.position.y);
     nextPos.add(direction);
@@ -68,8 +67,12 @@ class avatar {
 
     let intersected = aTemp.intersect(obstacleArr);
 
+    //If not intersecting->move towards point
+    //
+
     if (!intersected) {
       //Can advance in a straight line towards endpoint
+      console.log("Can advance in straight line");
       hasChangedDir = false;
       return direction;
     } else if (directionMode == 0) {
@@ -104,87 +107,52 @@ class avatar {
         }
       }
     } else {
+      console.log("Intersecting")
       //prefer initial trajectory
       if (aTemp.moveDirection == 0) {
         //Horizontal
         let leftVector = createVector(-1, 0);
         let rightVector = createVector(1, 0);
 
-        // let angleLeft = direction.angleBetween(leftVector);
-        // let angleRight = direction.angleBetween(rightVector);
-
-        //ide: om vektorn för dir är rak, gör inte något av detta förän den inte är det
-    // if(((direction.x > 0.99 && direction.x < 1.01) && (direction.y > -0.1 && direction.y < 0.1)) ||
-    //  ((direction.y > 0.99 && direction.y < 1.01) && (direction.x > -0.1 && direction.x < 0.1))){
-    //   console.log("Avataris moving alongside an object already")
-    //   return direction;
-    // }
-
-    //code for avatar already moving alongisde an object
-    if(((direction.x > 0.99 && direction.x < 1.01) && (direction.y > -0.1 && direction.y < 0.1))) { //(1,0)
-      direction.set(1, 0)
-      console.log("Avatar is moving alongside an object already")
-      return direction;
-    }
-    else if(((direction.x > -1.01 && direction.x < -0.99) && (direction.y > -0.1 && direction.y < 0.1))) { //(-1,0)
-      direction.set(-1, 0)
-      console.log("Avatar is moving alongside an object already")
-      return direction;
-    }
-    //for vertical
-    // else if(((direction.x > -0.1 && direction.x < 0.1) && (direction.y > 0.99 && direction.y < 1.01))) { //(0,1)
-    //   direction.set(0, 1)
-    //   console.log("Avatar is moving alongside an object already")
-    //   return direction;
-    // }
-    // else if(((direction.x > -0.1 && direction.x < 0.1) && (direction.y > -1.01 && direction.y < -0.99))) { //(0,-1)
-    //   direction.set(0, 1)
-    //   console.log("Avatar is moving alongside an object already")
-    //   return direction;
-    // }
-    else{
-      //code for diagonal crash (horizontal)
-      if(direction.x > 0 && direction.y > 0) {//diagonal from left top --> go right
-        direction.set(1, 0);
-        console.log("diagonal from left top")
-        return direction;
+        //code for avatar already moving alongisde an object
+        if (prevDirection.x == 1 && prevDirection.y == 0) { 
+          //(1,0)
+          direction.set(1, 0);
+          //console.log("Avatar is moving alongside an object already")
+          return direction;
+        } else if (prevDirection.x == -1 && prevDirection.y == 0) {
+          //(-1,0)
+          direction.set(-1, 0);
+          //console.log("Avatar is moving alongside an object already")
+          return direction;
+        } else {
+          //code for diagonal crash (horizontal). First crash
+          if (direction.x > 0 && direction.y > 0) {
+            //diagonal from left top --> go right
+            direction.set(1, 0);
+            //console.log("diagonal from left top")
+            return direction;
+          } else if (direction.x <= 0 && direction.y > 0) {
+            //diagonal from right top--> go left
+            direction.set(-1, 0);
+            //console.log("diagonal from right top")
+            return direction;
+          } else if (direction.x < 0 && direction.y < 0) {
+            //diagonal from right bottom --> go left
+            direction.set(-1, 0);
+            //console.log("diagonal from right bottom")
+            return direction;
+          }
+          else {
+            //diagonal from left bottom --> go right
+            //console.log("diagonal from left bottom")
+            direction.set(1, 0);
+            return direction;
+          }
+        }
       }
-      else if(direction.x <= 0 && direction.y > 0) {//diagonal from right top--> go left
-        direction.set(-1, 0);
-        console.log("diagonal from right top")
-        return direction;
-      }
-      else if(direction.x < 0 || direction < 0) { //diagonal from right bottom --> go left
-        direction.set(-1, 0);
-        console.log("diagonal from right bottom")
-        return direction;
-      }
-      // else if(direction.x > 0 && direction <= 0) { //diagonal from left bottom --> go right
-      //   direction.set(1, 0);
-      //   return direction;
-      // }
-      else{ //diagonal from left bottom --> go right
-        console.log("diagonal from left bottom")
-        direction.set(1, 0);
-        return direction;
-      }
-    }
-  }
-      //   //left
-      //   if (angleLeft < angleRight) {
-
-      //     console.log("angleLeft = " + angleLeft) //is always negative (ex -1.2)
-      //     console.log("angleRight = " + angleRight) //is always positive (ex 1.8)
-
-      //     direction.set(-1, 0);
-      //     return direction;
-      //   } else {
-      //     //right
-      //     direction.set(1, 0);
-      //     return direction;
-      //   }
-      // }
       if (aTemp.moveDirection == 1) {
+        console.log("Moving vertically");
         //Vertical
         let upVector = createVector(0, -1);
         let downVector = createVector(0, 1);
@@ -204,5 +172,18 @@ class avatar {
     }
   }
 }
+
+
+  //for vertical
+    // else if(((direction.x > -0.1 && direction.x < 0.1) && (direction.y > 0.99 && direction.y < 1.01))) { //(0,1)
+    //   direction.set(0, 1)
+    //   console.log("Avatar is moving alongside an object already")
+    //   return direction;
+    // }
+    // else if(((direction.x > -0.1 && direction.x < 0.1) && (direction.y > -1.01 && direction.y < -0.99))) { //(0,-1)
+    //   direction.set(0, 1)
+    //   console.log("Avatar is moving alongside an object already")
+    //   return direction;
+    // }
 
 

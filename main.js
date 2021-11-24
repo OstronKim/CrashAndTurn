@@ -17,6 +17,8 @@ let images = [];
 let index;
 let speed;
 
+let prevDirection;
+
 function preload() {
   for (let i = 0; i < 10; i++) {
     images[i] = loadImage("assets/zombie/male/Walk(" + (i + 1) + ").png");
@@ -29,7 +31,7 @@ function setup() {
   bgcolor = color("white");
   background(bgcolor);
 
-  //startStop();
+  startStop();
 
   position = [80, 30];
   endPos = [600, 600];
@@ -50,6 +52,7 @@ function setup() {
   hasChangedDir = false;
   speed = 0.3;
   index = 0;
+  prevDirection = createVector(0,0);
   frameRate(60);
 }
 
@@ -76,13 +79,15 @@ function draw() {
   if (
     !(abs(a1.position.x - endPos[0]) < 1 && abs(a1.position.y - endPos[1]) < 1)
   ) {
+    //console.log("from main: " + prevDirection);
     a1.position.add(a1.crash_and_turn(obstacleArray, directionMode));
+    prevDirection = a1.crash_and_turn(obstacleArray, directionMode);
     stroke("purple"); // Change the color
     strokeWeight(10); // Make the points 10 pixels in
     point(a1.position.x, a1.position.y);
     //a1.show();
     noStroke();
-    //text(a1.position.toString(), 100, 5, 400, 75);
+    //text(a1.position.toString(), 100, 5, 400, 75)s;
     //fill(255, 255, 255);
     done = false;
   } else {
@@ -165,7 +170,7 @@ function map2() {
 }
 
 function mapH() { //Test map for horizontal troubleshooting
-  let obstacle1 = new obstacle(120, 120, 150, 10);
+  let obstacle1 = new obstacle(120, 70, 150, 10);
 
   let wallTop = new obstacle(0, 1, 700, 2);
   let wallRight = new obstacle(698, 0, 2, 700);
