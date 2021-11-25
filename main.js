@@ -23,11 +23,11 @@ let collide;
 let objectID;
 let step;
 
-function preload() {
-  for (let i = 0; i < 10; i++) {
-    images[i] = loadImage("assets/zombie/male/Walk(" + (i + 1) + ").png");
-  }
-}
+// function preload() {
+//   for (let i = 0; i < 10; i++) {
+//     images[i] = loadImage("assets/zombie/male/Walk(" + (i + 1) + ").png");
+//   }
+// }
 
 function setup() {
   canvas = createCanvas(700, 700);
@@ -87,7 +87,6 @@ function draw() {
   ) {
     //Testa intersect
     if (collide == true) {
-      //dest = moveTo(objectID);
       a1.position.add(step);
       if (abs(a1.position.x - dest.x) < 1 && abs(a1.position.y - dest.y) < 1) {
         //vi har rört oss till positionen (I x led just nu)
@@ -112,14 +111,10 @@ function draw() {
       }
     }
 
-    //console.log("from main: " + prevDirection);
-    // a1.position.add(a1.crash_and_turn(obstacleArray, directionMode));
-    // prevDirection = a1.crash_and_turn(obstacleArray, directionMode);
-
     stroke("purple"); // Change the color
     strokeWeight(10); // Make the points 10 pixels in
     point(a1.position.x, a1.position.y);
-    a1.show();
+    //a1.show();
     noStroke();
     done = false;
   } else {
