@@ -8,8 +8,12 @@ class obstacle {
   }
 
   draw() {
-    stroke("red"); // Change the color
+    //stroke("red"); // Change the color
+    noStroke();
+    texture(obstacleIMG);
+    //fill(135, 135, 135);
     strokeWeight(2); // Make the points 10 pixels in
     rect(this.x, this.y, this.w, this.h);
+    //nofill();
   }
 }

@@ -11,7 +11,7 @@ class avatar {
 
   show() {
     let index = floor(this.index) % this.animationSeq.length;
-    image(this.animationSeq[index], this.position.x, this.position.y);
+    image(this.animationSeq[index], this.position.x - 20, this.position.y - 20);
     this.index += this.speed;
   }
 

@@ -27,31 +27,50 @@ let step;
 
 let randomDir;
 let randomPos;
+let randomDest;
+let randomDestReached = true;
 
-// function preload() {
-//   for (let i = 0; i < 10; i++) {
-//     images[i] = loadImage("assets/zombie/male/Walk(" + (i + 1) + ").png");
-//   }
-// }
+let brainIMG;
+let background1;
+let obstacleIMG;
+
+let soundtrack;
+
+let offsetX, offsetY;
+
+function preload() {
+  for (let i = 0; i < 10; i++) {
+    images[i] = loadImage("assets/zombie/male/Walk(" + (i + 1) + ").png");
+  }
+  brainIMG = loadImage("assets/brain.png");
+  background1 = loadImage("assets/background1.png");
+  obstacleIMG = loadImage("assets/stone.png");
+
+  //audio
+  soundtrack = loadSound("assets/8bitBanger.mp3");
+}
 
 function setup() {
-  canvas = createCanvas(700, 700);
+  canvas = createCanvas(700, 700, WEBGL);
   canvas.position(610, 120); //adjusted for 1920x1080 chrome maximised
-  bgcolor = color("white");
+  bgcolor = color(138, 138, 138);
   background(bgcolor);
+
+  soundtrack.play();
 
   startStop();
 
-  position = [80, 30];
-  endPos = [600, 600];
+  position = [380, 330];
+  endPos = createVector(600, 600);
 
   for (let i = 0; i < images.length; i++) {
     images[i].resize(30, 0);
   }
+  brainIMG.resize(50, 0);
 
   a1 = new avatar(position[0], position[1], images);
 
-  obstacleArray = mapConcave();
+  obstacleArray = map2();
 
   directionRadio = createRadio();
   directionRadio.option(0, "Random");
@@ -63,13 +82,20 @@ function setup() {
   prevDirection = createVector(0, 0);
   step = createVector(0, 0);
   dest = createVector(0, 0);
+  randomDest = 0;
+  offsetX = 15;
+  offsetY = 15;
 
   collide = false;
   frameRate(60);
+  noCursor();
 }
 
 function draw() {
-  background("white");
+  translate(-width / 2, -height / 2);
+  background(bgcolor);
+  //background("white");
+  soundtrack.setVolume(0.05);
 
   if (done) {
     text("Goal reached!", 400, 500, 200, 200);
@@ -83,7 +109,10 @@ function draw() {
   endpt = point(mouseX, mouseY);
 
   //endPos = [400, 70];
-  endPos = [mouseX, mouseY];
+  endPos.set(mouseX, mouseY);
+  image(brainIMG, endPos.x - 15, endPos.y - 15);
+  //cursor(brainIMG, 16, 16);
+  //cursor("https://avatars0.githubusercontent.com/u/1617169?s=16");
 
   obstacleArray.forEach((element) => element.draw());
 
@@ -91,7 +120,7 @@ function draw() {
 
   //Keep moving while not on end point
   if (
-    !(abs(a1.position.x - endPos[0]) < 1 && abs(a1.position.y - endPos[1]) < 1)
+    !(abs(a1.position.x - endPos.x) < 1 && abs(a1.position.y - endPos.y) < 1)
   ) {
     //Testa intersect
     if (collide == true) {
@@ -100,25 +129,32 @@ function draw() {
         //vi har rört oss till positionen
         collide = false;
         randomDir = false;
+        randomDestReached = true;
       }
     } else {
       let unique = [];
       for (let i = 0; i < lastDestinations.length; i++) {
-        for (let k = 0; k < unique.length; k++) {
-          if (
-            !(
-              lastDestinations[i].x == lastDestinations[k].x &&
-              lastDestinations[i].y == lastDestinations[k].y
-            )
-          ) {
-            unique.push(lastDestinations[i]);
-          }
-        }
+        let sum = lastDestinations[i].x + lastDestinations[i].y;
+        unique[i] = floor(sum);
       }
+      unique = [...new Set(unique)];
       //Check if stuck
       if (lastDestinations.length == 5 && unique.length <= 2 && !randomDir) {
         randomDir = true;
-        dest.set(20, 20);
+        randomDestReached = false;
+        randomDest = createVector(
+          -(endPos.x - a1.position.x),
+          -(endPos.y - a1.position.y)
+        );
+        randomDest.normalize();
+        //console.log("short randomDest vector: " + randomDest);
+        randomDest.x *= 200;
+        randomDest.y *= 200;
+        //console.log("randomDest vector: " + randomDest);
+        dest.x = a1.position.x + randomDest.x;
+        dest.y = a1.position.y + randomDest.y;
+        //console.log("Dest: " + dest);
+        //dest.set(85, 80);
         lastDestinations = [];
       }
 
@@ -126,12 +162,12 @@ function draw() {
       if (randomDir) {
         direction = createVector(
           dest.x - a1.position.x,
-          dest.x - a1.position.y
+          dest.y - a1.position.y
         );
       } else {
         direction = createVector(
-          endPos[0] - a1.position.x,
-          endPos[1] - a1.position.y
+          endPos.x - a1.position.x,
+          endPos.y - a1.position.y
         );
       }
 
@@ -151,9 +187,9 @@ function draw() {
         }
         a1.position.add(direction);
       } else {
+        //Check if it has reached the random destination
         randomDir = false;
-        console.log("tja");
-        dest = moveTo(objectID, aTemp.moveDirection);
+        dest = moveTo(objectID, aTemp.moveDirection, endPos);
       }
     }
 
@@ -162,20 +198,20 @@ function draw() {
     point(a1.position.x, a1.position.y);
 
     stroke("blue"); // Change the color
-    strokeWeight(10); // Make the points 10 pixels in
+    strokeWeight(10); // Make the points 10  in
     point(dest.x, dest.y);
 
-    //a1.show();
+    a1.show();
     noStroke();
     done = false;
   } else {
     done = true;
   }
 
-  function moveTo(objectID, moveDirection) {
+  function moveTo(objectID, moveDirection, destination) {
     let direction = createVector(
-      endPos[0] - a1.position.x,
-      endPos[1] - a1.position.y
+      destination.x - a1.position.x,
+      destination.y - a1.position.y
     );
 
     if (moveDirection == 0) {
@@ -183,15 +219,15 @@ function draw() {
       if (direction.x > 0 && direction.y > 0) {
         //diagonal from left top --> go right
         dest = createVector(
-          obstacleArray[objectID].x + obstacleArray[objectID].w + 5,
-          a1.position.y - 5
+          obstacleArray[objectID].x + obstacleArray[objectID].w + offsetX,
+          a1.position.y - offsetY
         );
         let tempAvatar = new avatar(dest.x, dest.y, images);
         if (tempAvatar.intersect(obstacleArray)) {
           //moveTo dest is blocked
           dest = createVector(
-            obstacleArray[objectID].x + obstacleArray[objectID].w - 5,
-            a1.position.y - 5
+            obstacleArray[objectID].x + obstacleArray[objectID].w - offsetX,
+            a1.position.y - offsetY
           );
         }
         let v = createVector(dest.x - a1.position.x, dest.y - a1.position.y);
@@ -202,23 +238,35 @@ function draw() {
         //step.set(-1, 0);
         //dest = createVector(obstacleArray[objectID].x - 5, a1.position.y);
 
-        dest = createVector(obstacleArray[objectID].x - 5, a1.position.y - 5);
+        dest = createVector(
+          obstacleArray[objectID].x - offsetX,
+          a1.position.y - offsetY
+        );
         let tempAvatar = new avatar(dest.x, dest.y, images);
         if (tempAvatar.intersect(obstacleArray)) {
           //moveTo dest is blocked
-          dest = createVector(obstacleArray[objectID].x + 5, a1.position.y - 5);
+          dest = createVector(
+            obstacleArray[objectID].x + offsetX,
+            a1.position.y - offsetY
+          );
         }
         let v = createVector(dest.x - a1.position.x, dest.y - a1.position.y);
         v.normalize();
         step.set(v.x, v.y);
       } else if (direction.x < 0 && direction.y < 0) {
         //diagonal from right bottom --> go left
-        dest = createVector(obstacleArray[objectID].x - 5, a1.position.y + 5);
+        dest = createVector(
+          obstacleArray[objectID].x - offsetX,
+          a1.position.y + offsetY
+        );
 
         let tempAvatar = new avatar(dest.x, dest.y, images);
         if (tempAvatar.intersect(obstacleArray)) {
           //moveTo dest is blocked
-          dest = createVector(obstacleArray[objectID].x + 5, a1.position.y + 5);
+          dest = createVector(
+            obstacleArray[objectID].x + offsetX,
+            a1.position.y + offsetY
+          );
         }
         let v = createVector(dest.x - a1.position.x, dest.y - a1.position.y);
         v.normalize();
@@ -226,7 +274,7 @@ function draw() {
       } else {
         //diagonal from left bottom --> go right
         dest = createVector(
-          obstacleArray[objectID].x + obstacleArray[objectID].w + 5,
+          obstacleArray[objectID].x + obstacleArray[objectID].w + offsetX,
           a1.position.y + 5
         );
 
@@ -234,8 +282,8 @@ function draw() {
         if (tempAvatar.intersect(obstacleArray)) {
           //moveTo dest is blocked
           dest = createVector(
-            obstacleArray[objectID].x + obstacleArray[objectID].w - 5,
-            a1.position.y + 5
+            obstacleArray[objectID].x + obstacleArray[objectID].w - offsetX,
+            a1.position.y + offsetY
           );
         }
         let v = createVector(dest.x - a1.position.x, dest.y - a1.position.y);
@@ -249,15 +297,15 @@ function draw() {
         //calcDest(objectID, -5, 5);
         //step.set(0, 1);
         dest = createVector(
-          a1.position.x - 5,
-          obstacleArray[objectID].y + obstacleArray[objectID].h + 5
+          a1.position.x - offsetX,
+          obstacleArray[objectID].y + obstacleArray[objectID].h + offsetY
         );
         //Check if dest is blocked
         let tempAvatar = new avatar(dest.x, dest.y, images);
         if (tempAvatar.intersect(obstacleArray)) {
           dest = createVector(
-            obstacleArray[objectID].x - 5,
-            obstacleArray[objectID].y + obstacleArray[objectID].h - 5
+            obstacleArray[objectID].x - offsetX,
+            obstacleArray[objectID].y + obstacleArray[objectID].h - offsetY
           );
         }
 
@@ -268,14 +316,14 @@ function draw() {
         //diagonal from right top--> go down
         dest = createVector(
           a1.position.x + 5,
-          obstacleArray[objectID].y + obstacleArray[objectID].h + 5
+          obstacleArray[objectID].y + obstacleArray[objectID].h + offsetY
         );
         let tempAvatar = new avatar(dest.x, dest.y, images);
         if (tempAvatar.intersect(obstacleArray)) {
           //moveTo dest is blocked
           dest = createVector(
-            a1.position.x + 5,
-            obstacleArray[objectID].y + obstacleArray[objectID].h - 5
+            a1.position.x + offsetX,
+            obstacleArray[objectID].y + obstacleArray[objectID].h - offsetY
           );
         }
         let v = createVector(dest.x - a1.position.x, dest.y - a1.position.y);
@@ -283,24 +331,36 @@ function draw() {
         step.set(v.x, v.y);
       } else if (direction.x < 0 && direction.y < 0) {
         //diagonal from right bottom --> go up
-        dest = createVector(a1.position.x + 5, obstacleArray[objectID].y - 5);
+        dest = createVector(
+          a1.position.x + offsetX,
+          obstacleArray[objectID].y - offsetY
+        );
 
         let tempAvatar = new avatar(dest.x, dest.y, images);
         if (tempAvatar.intersect(obstacleArray)) {
           //moveTo dest is blocked
-          dest = createVector(a1.position.x + 5, obstacleArray[objectID].y + 5);
+          dest = createVector(
+            a1.position.x + offsetX,
+            obstacleArray[objectID].y + offsetY
+          );
         }
         let v = createVector(dest.x - a1.position.x, dest.y - a1.position.y);
         v.normalize();
         step.set(v.x, v.y);
       } else {
         //diagonal from left bottom --> go up
-        dest = createVector(a1.position.x - 5, obstacleArray[objectID].y - 5);
+        dest = createVector(
+          a1.position.x - offsetX,
+          obstacleArray[objectID].y - offsetY
+        );
 
         //Check if dest is blocked
         let tempAvatar = new avatar(dest.x, dest.y, images);
         if (tempAvatar.intersect(obstacleArray)) {
-          dest = createVector(a1.position.x - 5, obstacleArray[objectID].y + 5);
+          dest = createVector(
+            a1.position.x - offsetX,
+            obstacleArray[objectID].y + offsetY
+          );
         }
         let v = createVector(dest.x - a1.position.x, dest.y - a1.position.y);
         v.normalize();
@@ -312,27 +372,27 @@ function draw() {
     if (lastDestinations.length > 5) {
       lastDestinations.pop();
     }
-    console.log(lastDestinations);
+    //console.log(lastDestinations);
     return dest;
   }
-
-  function calcDest(objectID, offsetX, offsetY) {
-    dest = createVector(
-      a1.position.x + offsetX,
-      obstacleArray[objectID].y + obstacleArray[objectID].h + offsetY
-    );
-    let v = createVector(dest.x - a1.position.x, dest.y - a1.position.y);
-    v.normalize();
-    step.set(v.x, v.y);
-    //Check if dest is blocked
-    let tempAvatar = new avatar(dest.x, dest.y, images);
-    if (tempAvatar.intersect(obstacleArray)) {
-      dest = createVector(
-        obstacleArray[objectID].x + offsetX,
-        obstacleArray[objectID].y + obstacleArray[objectID].h + offsetY
-      );
-    }
-  }
+  //not in use, too many different cases
+  // function calcDest(objectID, offsetX, offsetY) {
+  //   dest = createVector(
+  //     a1.position.x + offsetX,
+  //     obstacleArray[objectID].y + obstacleArray[objectID].h + offsetY
+  //   );
+  //   let v = createVector(dest.x - a1.position.x, dest.y - a1.position.y);
+  //   v.normalize();
+  //   step.set(v.x, v.y);
+  //   //Check if dest is blocked
+  //   let tempAvatar = new avatar(dest.x, dest.y, images);
+  //   if (tempAvatar.intersect(obstacleArray)) {
+  //     dest = createVector(
+  //       obstacleArray[objectID].x + offsetX,
+  //       obstacleArray[objectID].y + obstacleArray[objectID].h + offsetY
+  //     );
+  //   }
+  // }
 
   //animate
   // let xOffset = 20;
@@ -411,9 +471,9 @@ function map2() {
 
 function mapConcave() {
   //Test map for horizontal troubleshooting
-  let obstacle1 = new obstacle(120, 130, 150, 20);
-  let obstacle2 = new obstacle(270, 40, 25, 90);
-  let obstacle3 = new obstacle(120, 20, 150, 20);
+  let obstacle1 = new obstacle(320, 400, 75, 20);
+  let obstacle2 = new obstacle(395, 310, 25, 90);
+  let obstacle3 = new obstacle(320, 290, 75, 20);
 
   let wallTop = new obstacle(0, 1, 700, 2);
   let wallRight = new obstacle(698, 0, 2, 700);
