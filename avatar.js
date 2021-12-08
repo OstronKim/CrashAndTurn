@@ -1,3 +1,5 @@
+let hitWall;
+
 class avatar {
   //Avatar has position which is vector pos with direction
   constructor(x, y, animationSeq) {
@@ -11,13 +13,21 @@ class avatar {
 
   show() {
     let index = floor(this.index) % this.animationSeq.length;
-    image(this.animationSeq[index], this.position.x - 20, this.position.y - 20);
+    image(this.animationSeq[index], this.position.x - 15, this.position.y - 25); //further up in y to mimic 2.5d
     this.index += this.speed;
   }
+
+  // hasHitWall() {
+  //   if(hitWall == true){
+  //     return true;
+  //   }
+  //     return false;
+  // }
 
   //Denna funktion behöver utvecklas med ytterligare checks som kan hantera obstacles som overlappar
   intersect(obstacleArr) {
     let intersecting = false;
+    wallIsHit = false;
     objectID = 0;
 
     //Maybe use collideRectRect()
@@ -28,6 +38,11 @@ class avatar {
         this.position.y >= obstacleArr[i].y &&
         this.position.y <= obstacleArr[i].y + obstacleArr[i].h
       ) {
+        //console.log("i = " + i + "lenght = "  + (obstacleArr.length - 4))
+        if(i >= (obstacleArr.length - 4)) {//last 4 are walls
+          setTrue();
+          console.log("we hit a wall")
+        }
         intersecting = true;
         objectID = i;
       }
@@ -79,13 +94,13 @@ class avatar {
       hasChangedDir = false;
       return direction;
     } else if (directionMode == 0) {
-      //Random direction
+      //Random direction, currently not fleshed out
       if (hasChangedDir == false) {
         this.rand = Math.random();
         hasChangedDir = true;
       }
       if (aTemp.moveDirection == 0) {
-        //Horizontal
+        //Horizontal,
         if (this.rand <= 0.5) {
           //left
           direction.set(-1, 0);
@@ -174,6 +189,8 @@ class avatar {
     }
   }
 }
+
+
 
 //for vertical
 // else if(((direction.x > -0.1 && direction.x < 0.1) && (direction.y > 0.99 && direction.y < 1.01))) { //(0,1)

@@ -9,6 +9,7 @@ let posVec;
 let dest;
 
 let obstacleArray;
+let wallArray;
 
 let a1;
 let hasChangedDir;
@@ -24,6 +25,7 @@ let prevDirection;
 let collide;
 let objectID;
 let step;
+let wallIsHit; //used to identify wall
 
 let randomDir;
 let randomPos;
@@ -56,7 +58,7 @@ function setup() {
   bgcolor = color(138, 138, 138);
   background(bgcolor);
 
-  soundtrack.play();
+  //soundtrack.play();
 
   startStop();
 
@@ -112,7 +114,6 @@ function draw() {
   endPos.set(mouseX, mouseY);
   image(brainIMG, endPos.x - 15, endPos.y - 15);
   //cursor(brainIMG, 16, 16);
-  //cursor("https://avatars0.githubusercontent.com/u/1617169?s=16");
 
   obstacleArray.forEach((element) => element.draw());
 
@@ -214,7 +215,56 @@ function draw() {
       destination.y - a1.position.y
     );
 
+    //console.log("wall bool = " + wallIsHit)
+
     if (moveDirection == 0) {
+
+      if(wallIsHit == true){
+
+      let wallID = calcClosestWall(a1.position);
+      console.log(wallID);
+
+        if(wallID == 1) {//top wall
+        dest = createVector(
+          a1.position.x, a1.position.y + 25
+        );
+        console.log("running H 1")
+        }
+      //  if(wallID == 2) {//right wall
+      //     dest = createVector(
+      //       a1.position.x - 25, a1.position.y
+      //     );
+      //   }
+        if(wallID == 3) {//bottom wall
+          dest = createVector(
+            a1.position.x, a1.position.y - 25
+          );
+          console.log("running H 3")
+        }
+        // if(wallID == 4) {//left wall
+        //   dest = createVector(
+        //     a1.position.x + 25, a1.position.y
+        //   );
+        // }
+
+        let tempAvatar = new avatar(dest.x, dest.y, images);
+        if (tempAvatar.intersect(obstacleArray)) {
+          //moveTo dest is blocked
+          dest = createVector(
+            obstacleArray[objectID].x + obstacleArray[objectID].w - offsetX,
+            a1.position.y - offsetY
+          );
+        }
+
+        let v = createVector(dest.x - a1.position.x, dest.y - a1.position.y);
+        v.normalize();
+        step.set(v.x, v.y);
+        wallIsHit = false;
+      }
+      else { //else ends at line 307 (Så ifall vägg träffas --> struntar i alla andra regler och bara gå ifrån vägen en kort bit)
+
+        //end of wallcode (horizontal)
+
       //code for diagonal crash (horizontal). First crash
       if (direction.x > 0 && direction.y > 0) {
         //diagonal from left top --> go right
@@ -290,7 +340,55 @@ function draw() {
         v.normalize();
         step.set(v.x, v.y);
       }
+    }
     } else {
+
+      if(wallIsHit == true){
+
+        let wallID = calcClosestWall(a1.position);
+        console.log(wallID);
+  
+          // if(wallID == 1) {//top wall
+          // dest = createVector(
+          //   a1.position.x, a1.position.y + 25
+          // );
+          // }
+         if(wallID == 2) {//right wall
+            dest = createVector(
+              a1.position.x - 25, a1.position.y
+            );
+            console.log("running V 2")
+          }
+          // if(wallID == 3) {//bottom wall
+          //   dest = createVector(
+          //     a1.position.x, a1.position.y - 25
+          //   );
+          // }
+          if(wallID == 4) {//left wall
+            dest = createVector(
+              a1.position.x + 25, a1.position.y
+            );
+            console.log("running V 4")
+          }
+  
+          let tempAvatar = new avatar(dest.x, dest.y, images);
+          if (tempAvatar.intersect(obstacleArray)) {
+            //moveTo dest is blocked
+            dest = createVector(
+              obstacleArray[objectID].x + obstacleArray[objectID].w - offsetX,
+              a1.position.y - offsetY
+            );
+          }
+  
+          let v = createVector(dest.x - a1.position.x, dest.y - a1.position.y);
+          v.normalize();
+          step.set(v.x, v.y);
+          wallIsHit = false;
+        }
+        else {
+
+        //end of wallcode (vertical)
+
       //code for diagonal crash (vertical). First crash
       if (direction.x > 0 && direction.y > 0) {
         //diagonal from left top --> go down
@@ -367,6 +465,7 @@ function draw() {
         step.set(v.x, v.y);
       }
     }
+  }
     //unshift, pushes item to front of array
     lastDestinations.unshift(dest);
     if (lastDestinations.length > 5) {
@@ -414,6 +513,65 @@ function draw() {
 // - Om inte, randomiza åt något diagonalt håll för att försöka ett håll agenten inte provat.
 // - Hårdkoda någon toleranstid som ifall den uppnås, agenten identifierar världen som omöjlig att nå målet i. typ(60 sek)
 
+//walls are: top (1) --> right (2) --> bottom (3) --> left (4)
+function calcClosestWall(avatar){
+  if(avatar.x < canvas.width/2) //leftside
+  {
+    if(avatar.y < canvas.height/2) //left-top
+    {
+      if(avatar.y > avatar.x){ //more down then up, left wall
+        console.log("we hit left wall")
+        return 4;
+      }
+      else{
+        console.log("we hit top wall")
+        return 1; //more up then down, top wall
+      }
+    }
+    else if(avatar.y > canvas.height/2){ //left-bottom x: 0 --> 350, y: 350 --> 700
+
+      if((avatar.y - canvas.height) < avatar.x){ //more left than down, left wall
+        console.log("we hit left wall")
+        return 4;
+      }
+      else{
+        console.log("we hit bottom wall")
+        return 3; //more up then down, left wall
+      }
+    }
+  }
+  else { //rightside
+    if(avatar.y < canvas.height/2) //right-top
+    {
+      if(avatar.y > avatar.x){ //more down then up, right wall
+        console.log("we hit right wall")
+        return 2;
+      }
+      else
+      {
+        console.log("we hit top wall")
+        return 1;
+      }
+    }
+    else if(avatar.y > canvas.height/2) { //right-bottom
+
+      if(avatar.y > avatar.x){ //more down then up, bottom wall
+        console.log("we hit bottomn wall")
+        return 3;
+      }
+      else{
+        console.log("we hit right wall")
+        return 4; //more up then down, right wall
+      }
+    }
+  }
+}
+
+
+function setTrue() {
+  wallIsHit = true;
+}
+
 function map1() {
   //Convex construction. Fails horribly
   let obstacle1 = new obstacle(100, 70, 20, 100);
@@ -448,7 +606,7 @@ function map2() {
   let obstacle5 = new obstacle(50, 461, 60, 65);
   let obstacle6 = new obstacle(230, 240, 100, 100);
 
-  let wallTop = new obstacle(0, 1, 700, 2);
+  let wallTop = new obstacle(0, 1, 700, 2); //10 should be 2
   let wallRight = new obstacle(698, 0, 2, 700);
   let wallBottom = new obstacle(1, 698, 700, 2);
   let wallLeft = new obstacle(1, 0, 2, 700);
