@@ -1,3 +1,7 @@
+//Authors: Arvid magnusson, arvma, Viktor Sjögren, viksj950
+//Date: 2021-12-08
+//Implementation of crash and turn algorithm in p5.js for the course TSBK03
+
 //Globals
 var canvas;
 var startpt;
@@ -33,8 +37,6 @@ let soundRadio;
 let font;
 
 let offsetX, offsetY;
-
-let visible = true;
 
 function preload() {
   for (let i = 0; i < 10; i++) {
