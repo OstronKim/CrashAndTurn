@@ -95,7 +95,7 @@ function draw() {
   translate(-width / 2, -height / 2);
   background(bgcolor);
   //background("white");
-  soundtrack.setVolume(0.05);
+  soundtrack.setVolume(0.0);
 
   if (done) {
     text("Goal reached!", 400, 500, 200, 200);
@@ -175,6 +175,19 @@ function draw() {
       let nextPos = createVector(a1.position.x, a1.position.y);
       nextPos.add(direction);
       //console.log(nextPos);
+
+      if (
+        nextPos.x - 5 < 0 ||
+        nextPos.x + 5 > width ||
+        nextPos.y - 5 < 0 ||
+        nextPos.y + 5 > height
+      ) {
+        direction.x = width / 2 - a1.position.x;
+        direction.y = height / 2 - a1.position.y;
+        direction.normalize();
+        direction *= 10;
+        nextPos.add(direction);
+      }
 
       let aTemp = new avatar(nextPos.x, nextPos.y, images);
       collide = aTemp.intersect(obstacleArray);
