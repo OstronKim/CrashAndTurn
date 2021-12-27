@@ -1,5 +1,4 @@
 function map1() {
-  //Convex construction. With overlaps.  Fails horribly
   let obstacle1 = new obstacle(100, 70, 20, 100);
   let obstacle2 = new obstacle(220, 100, 30, 100);
   let obstacle3 = new obstacle(120, 160, 100, 20); //bottom panel
@@ -55,7 +54,7 @@ function map2() {
 }
 
 function mapConcave() {
-  //Test map for concave construction, works for specific cases (Big issue with collision)
+  //Test map for concave construction
   let obstacle1 = new obstacle(320, 400, 75, 20);
   let obstacle2 = new obstacle(395, 310, 25, 90);
   let obstacle3 = new obstacle(320, 290, 75, 20);

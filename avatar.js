@@ -1,5 +1,4 @@
 class avatar {
-  //Avatar has position which is vector pos with direction
   constructor(x, y, animationSeq) {
     this.position = createVector(x, y);
     this.rand = 0;

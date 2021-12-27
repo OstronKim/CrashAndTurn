@@ -23,8 +23,8 @@ function crashAndTurn() {
         randomDir = true;
         randomDestReached = false;
         randomDest = createVector(
-          -(endPos.x - a1.position.x),
-          -(endPos.y - a1.position.y)
+          -(endPos.x - a1.position.x) + random(-5, 5),
+          -(endPos.y - a1.position.y) + random(-5, 5)
         );
         randomDest.normalize();
 
